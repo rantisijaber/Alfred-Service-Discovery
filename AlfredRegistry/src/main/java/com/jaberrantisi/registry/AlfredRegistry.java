@@ -26,7 +26,8 @@ public class AlfredRegistry {
         EventLoopGroup workers = new NioEventLoopGroup();
 
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(boss, workers).channel(NioServerSocketChannel.class)
+        bootstrap.group(boss, workers)
+                .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel channel) {
@@ -38,6 +39,9 @@ public class AlfredRegistry {
                     }
         });
 
-        bootstrap.bind(8080).sync().channel().closeFuture();
+        bootstrap.bind(8080)
+                .sync()
+                .channel()
+                .closeFuture();
     }
 }

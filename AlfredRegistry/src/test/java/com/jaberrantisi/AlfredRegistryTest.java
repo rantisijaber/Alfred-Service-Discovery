@@ -4,9 +4,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-/**
- * Unit test for simple App.
- */
 public class AlfredRegistryTest
     extends TestCase
 {
@@ -28,9 +25,7 @@ public class AlfredRegistryTest
         return new TestSuite( AlfredRegistryTest.class );
     }
 
-    /**
-     * Rigourous Test :-)
-     */
+
     public void testApp()
     {
         assertTrue( true );

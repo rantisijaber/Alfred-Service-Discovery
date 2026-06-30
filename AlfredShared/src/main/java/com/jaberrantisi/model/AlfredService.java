@@ -20,4 +20,5 @@ public class AlfredService {
     private Instant timeRegistered;
     private Instant lastHeartbeat;
     private Integer ttl;
+    private AlfredServiceStatus status;
 }
