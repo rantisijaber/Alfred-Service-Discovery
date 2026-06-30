@@ -13,10 +13,7 @@ import io.netty.handler.codec.string.StringEncoder;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * Hello world!
- *
- */
+
 public class AlfredRegistry {
     public static void main(String[] args) throws InterruptedException {
         AlfredServiceManager serviceManager = new AlfredServiceManager();
