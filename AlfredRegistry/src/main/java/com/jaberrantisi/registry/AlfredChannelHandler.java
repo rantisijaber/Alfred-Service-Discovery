@@ -8,7 +8,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.AllArgsConstructor;
-import java.util.List;
 
 @AllArgsConstructor
 @ChannelHandler.Sharable
@@ -40,13 +39,8 @@ public class AlfredChannelHandler extends ChannelInboundHandlerAdapter {
             case AlfredMessageType.QUERY:
                 AlfredQuery query = alfredProtocol.getMapper()
                         .convertValue(msgObject.getPayload(), AlfredQuery.class);
-                List<AlfredService> ref = serviceManager.getServiceMap().get(query.getServiceName());
-                List<AlfredService> copy  = ref == null ? List.of() : ref
-                        .stream()
-                        .filter(alfredService ->
-                                alfredService.getStatus() == AlfredServiceStatus.HEALTHY)
-                        .toList();
-                String listServices = protocolMapper.writeValueAsString(new AlfredObj(AlfredMessageType.QUERY_RESPONSE, copy)) + '\n';
+                String listServices = protocolMapper.writeValueAsString(new AlfredObj(AlfredMessageType.QUERY_RESPONSE,
+                        serviceManager.getServiceList(query))) + '\n';
                 context.writeAndFlush(listServices);
                 context.close();
                 break;

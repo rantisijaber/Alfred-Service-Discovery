@@ -2,6 +2,7 @@ package com.jaberrantisi.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaberrantisi.model.AlfredHeartbeat;
+import com.jaberrantisi.model.AlfredQuery;
 import com.jaberrantisi.model.AlfredService;
 import com.jaberrantisi.model.AlfredServiceStatus;
 
@@ -32,6 +33,15 @@ public class AlfredServiceManager {
         } catch (Exception e) {
             System.err.println("Status updater failed. Error: " + e.getMessage());
         }
+    }
+
+    public List<AlfredService> getServiceList(AlfredQuery query) {
+        List<AlfredService> ref = this.getServiceMap().get(query.getServiceName());
+        return ref == null ? List.of() : ref
+                .stream()
+                .filter(alfredService ->
+                        alfredService.getStatus() == AlfredServiceStatus.HEALTHY)
+                .toList();
     }
 
     public void addService(AlfredService alfredService) {
