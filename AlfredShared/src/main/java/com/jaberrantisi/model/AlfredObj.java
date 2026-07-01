@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AlfredObj {
-    private String messageType;
+    private AlfredMessageType messageType;
     private Object payload;
 
 }

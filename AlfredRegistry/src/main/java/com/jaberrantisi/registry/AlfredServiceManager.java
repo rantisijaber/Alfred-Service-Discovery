@@ -10,10 +10,7 @@ import lombok.Getter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Getter
 public class AlfredServiceManager {
@@ -26,6 +23,7 @@ public class AlfredServiceManager {
         this.mapper = new ObjectMapper();
         mapper.findAndRegisterModules();
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        startStatusUpdater();
     }
 
     public void startStatusUpdater() {
@@ -39,7 +37,7 @@ public class AlfredServiceManager {
     public void addService(AlfredService alfredService) {
         String serviceName = alfredService.getServiceName();
         List<AlfredService> serviceLocations =
-                this.serviceMap.computeIfAbsent(serviceName, k -> new ArrayList<>());
+                this.serviceMap.computeIfAbsent(serviceName, k -> new CopyOnWriteArrayList<>());
         serviceLocations.add(alfredService);
     }
 
@@ -49,30 +47,30 @@ public class AlfredServiceManager {
 //    }
 
     public void acceptHeartbeat(AlfredHeartbeat heartbeat) {
-        Optional<AlfredService> opService = this.serviceMap.get(heartbeat.getServiceName())
-                .stream()
-                .filter(alfredService -> alfredService.getInstanceId().equals(heartbeat.getInstanceId()))
-                .findFirst();
-        opService.ifPresent(service ->
-            service.setLastHeartbeat(heartbeat.getTimeSent())
-        );
+        List<AlfredService> opService = this.serviceMap.get(heartbeat.getServiceName());
+        if (opService == null) return;
+        opService.stream().filter(alfredService ->
+                alfredService.getInstanceId().equals(heartbeat.getInstanceId()))
+                .findFirst()
+                .ifPresent(alfredService ->
+                        alfredService.setLastHeartbeat(heartbeat.getTimeSent()));
+
     }
 
     public void updateStatus() {
-        this.serviceMap.forEach((serviceName, serviceList) ->
-            serviceList.removeIf(alfredService -> alfredService.getStatus() == AlfredServiceStatus.DOWN));
-
-        this.serviceMap.forEach((serviceName, serviceList) ->
+        this.serviceMap.forEach((serviceName, serviceList) -> {
+            serviceList.removeIf(alfredService -> alfredService.getStatus() == AlfredServiceStatus.DOWN);
+            Instant time = Instant.now();
             serviceList.stream()
                     .filter(alfredService ->
-                            (ChronoUnit.SECONDS.between(alfredService.getLastHeartbeat(), Instant.now()) > 45))
+                            (ChronoUnit.SECONDS.between(alfredService.getLastHeartbeat(), time) > 45))
                     .forEach(alfredService -> {
-                        long timeSinceHeartbeat = ChronoUnit.SECONDS.between(alfredService.getLastHeartbeat(), Instant.now());
+                        long timeSinceHeartbeat = ChronoUnit.SECONDS.between(alfredService.getLastHeartbeat(), time);
                         long ttl = alfredService.getTtl();
 
                         if (timeSinceHeartbeat < ttl) alfredService.setStatus(AlfredServiceStatus.LIMBO);
-                        else if (timeSinceHeartbeat > ttl) alfredService.setStatus(AlfredServiceStatus.DOWN);
-                    })
-        );
+                        else alfredService.setStatus(AlfredServiceStatus.DOWN);
+                    });
+        });
     }
 }

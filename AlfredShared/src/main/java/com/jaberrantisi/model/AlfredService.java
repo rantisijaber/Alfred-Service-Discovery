@@ -18,7 +18,7 @@ public class AlfredService {
     private String ipAddress;
     private Integer port;
     private Instant timeRegistered;
-    private Instant lastHeartbeat;
+    private volatile Instant lastHeartbeat;
     private Integer ttl;
-    private AlfredServiceStatus status;
+    private volatile AlfredServiceStatus status;
 }
